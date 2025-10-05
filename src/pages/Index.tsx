@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PinterestPin } from "@/components/PinterestPin";
 import { PinControls } from "@/components/PinControls";
+import { ApiTestSection } from "@/components/ApiTestSection";
 import defaultImage from "@/assets/default-pin-image.png";
 
 const Index = () => {
@@ -41,7 +42,7 @@ const Index = () => {
           </div>
 
           {/* Controls */}
-          <div>
+          <div className="space-y-8">
             <PinControls
               title={title}
               subtitle={subtitle}
@@ -51,6 +52,8 @@ const Index = () => {
               onColorChange={setColor}
               onImageUpload={handleImageUpload}
             />
+            
+            <ApiTestSection />
           </div>
         </div>
       </div>

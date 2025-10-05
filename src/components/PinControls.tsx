@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { Download, Loader2 } from "lucide-react";
 
 interface PinControlsProps {
   title: string;
@@ -23,10 +27,73 @@ export const PinControls = ({
   onColorChange,
   onImageUpload,
 }: PinControlsProps) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onImageUpload(file);
+      // Also store the URL for API calls
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const renderKey = prompt("Enter your RENDER_KEY (set in Lovable Cloud secrets):");
+      if (!renderKey) {
+        toast({
+          title: "Export cancelled",
+          description: "No RENDER_KEY provided",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('render', {
+        body: {
+          main_image: imageUrl || undefined,
+          color,
+          title,
+          subtitle,
+          format: 'png'
+        },
+        headers: {
+          'X-KEY': renderKey,
+        },
+      });
+
+      if (error) throw error;
+
+      // Convert response to blob and download
+      const blob = new Blob([data], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pin.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success!",
+        description: "Pin exported as pin.png",
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export failed",
+        description: error.message || "Failed to generate pin",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -103,8 +170,22 @@ export const PinControls = ({
         </div>
 
         <div className="pt-4">
-          <Button className="w-full font-inter font-medium">
-            Export Pin (1000x1500px)
+          <Button 
+            className="w-full font-inter font-medium" 
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Export Pin (1000x1500px)
+              </>
+            )}
           </Button>
         </div>
       </div>
