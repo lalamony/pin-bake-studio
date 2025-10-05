@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +30,7 @@ export const PinControls = ({
   const [isExporting, setIsExporting] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onImageUpload(file);
@@ -85,11 +85,11 @@ export const PinControls = ({
         title: "Success!",
         description: "Pin exported as pin.png",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Export error:', error);
       toast({
         title: "Export failed",
-        description: error.message || "Failed to generate pin",
+        description: error?.message || "Failed to generate pin",
         variant: "destructive",
       });
     } finally {
