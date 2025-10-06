@@ -70,8 +70,8 @@ export const PinControls = ({
 
       if (error) throw error;
 
-      // Convert response to blob and download
-      const blob = new Blob([data], { type: 'image/png' });
+      // The response is already a Blob from the edge function
+      const blob = data instanceof Blob ? data : new Blob([data], { type: 'image/png' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

@@ -1,7 +1,7 @@
 /// <reference lib="deno.unstable" />
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import satori from "npm:satori";
-import initWasm, { Resvg } from "npm:@resvg/resvg-wasm";
+import satori from "https://esm.sh/satori@0.10.14";
+import { initWasm, Resvg } from "https://esm.sh/@resvg/resvg-wasm@2.4.1";
 
 let wasmReady = false;
 let playfairFont: ArrayBuffer | null = null;
@@ -9,7 +9,9 @@ let interFont: ArrayBuffer | null = null;
 
 async function ensureWasm() {
   if (!wasmReady) {
-    await initWasm();
+    const wasmUrl = 'https://esm.sh/@resvg/resvg-wasm@2.4.1/index_bg.wasm';
+    const wasmData = await fetch(wasmUrl).then(r => r.arrayBuffer());
+    await initWasm(wasmData);
     wasmReady = true;
   }
 }
@@ -50,7 +52,7 @@ serve(async (req: Request) => {
     const color: string = body.color ?? '#5B3A1D';
     const title: string = body.title ?? 'BAKE RECIPES';
     const subtitle: string = body.subtitle ?? 'Brown minimalist bakery template';
-    const format: 'png' | 'webp' = (body.format ?? 'png').toLowerCase() as 'png' | 'webp';
+    const format: 'png' = 'png';
 
     console.log('Rendering pin with params:', { main_image, color, title, subtitle, format });
 
@@ -186,16 +188,19 @@ serve(async (req: Request) => {
 
     console.log('SVG generated, converting to image...');
 
-    // Convert SVG to PNG/WEBP using Resvg
+    // Convert SVG to PNG using Resvg
     const resvg = new Resvg(svg, { fitTo: { mode: 'original' } });
-    const img = format === 'webp' ? resvg.render().asWebp() : resvg.render().asPng();
+    const rendered = resvg.render();
+    const img = rendered.asPng();
 
     console.log('Image rendered successfully');
 
-    return new Response(img, {
+    const filename = 'pin.png';
+    return new Response(img as any, {
       status: 200,
       headers: {
-        'Content-Type': format === 'webp' ? 'image/webp' : 'image/png',
+        'Content-Type': 'image/png',
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-store',
       },
     });
