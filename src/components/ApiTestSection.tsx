@@ -78,10 +78,10 @@ export const ApiTestSection = () => {
     }
   };
 
-  const projectUrl = window.location.origin;
-  const curlCommand = `curl -X POST "${projectUrl}/api/render" \\
+  const productionEndpoint = 'https://lowqozpiskjjcukftwqn.supabase.co/functions/v1/render';
+  const curlCommand = `curl -X POST "${productionEndpoint}" \\
   -H "Content-Type: application/json" \\
-  -H "X-KEY: <RENDER_KEY>" \\
+  -H "X-KEY: YOUR_RENDER_KEY" \\
   -o pin.png \\
   -d '${jsonPayload.replace(/\n/g, '').replace(/\s+/g, ' ')}'`;
 
@@ -160,6 +160,23 @@ export const ApiTestSection = () => {
         )}
 
         <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="endpoint">
+            <AccordionTrigger className="font-inter font-medium">
+              Production Endpoint
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">POST to:</p>
+                <pre className="bg-muted p-3 rounded-md overflow-x-auto text-sm font-mono">
+                  {productionEndpoint}
+                </pre>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Required header: <code className="bg-muted px-2 py-1 rounded">X-KEY: YOUR_RENDER_KEY</code>
+                </p>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="curl">
             <AccordionTrigger className="font-inter font-medium">
               cURL Example
@@ -181,10 +198,10 @@ export const ApiTestSection = () => {
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm">
                 <li><strong>Method:</strong> POST</li>
-                <li><strong>URL:</strong> {projectUrl}/api/render</li>
-                <li><strong>Headers:</strong> Content-Type: application/json, X-KEY: {"<RENDER_KEY>"}</li>
-                <li><strong>Body:</strong> JSON with main_image, color, title, subtitle</li>
-                <li><strong>Response:</strong> Binary (save to storage or send via Telegram/email)</li>
+                <li><strong>URL:</strong> <code className="bg-muted px-2 py-1 rounded text-xs">{productionEndpoint}</code></li>
+                <li><strong>Headers:</strong> <code className="bg-muted px-2 py-1 rounded text-xs">X-KEY: YOUR_RENDER_KEY</code></li>
+                <li><strong>Body:</strong> JSON with <code className="bg-muted px-1 rounded text-xs">main_image</code>, <code className="bg-muted px-1 rounded text-xs">color</code>, <code className="bg-muted px-1 rounded text-xs">title</code>, <code className="bg-muted px-1 rounded text-xs">subtitle</code>, <code className="bg-muted px-1 rounded text-xs">format</code></li>
+                <li><strong>Response:</strong> Binary image (save to storage or send via Telegram/email)</li>
               </ul>
             </AccordionContent>
           </AccordionItem>
@@ -195,22 +212,24 @@ export const ApiTestSection = () => {
             </AccordionTrigger>
             <AccordionContent>
               <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{`const response = await fetch('${projectUrl}/api/render', {
+                <code>{`const response = await fetch('${productionEndpoint}', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'X-KEY': '<RENDER_KEY>'
+    'X-KEY': 'YOUR_RENDER_KEY'
   },
   body: JSON.stringify({
     main_image: 'https://example.com/image.jpg',
     color: '#5B3A1D',
     title: 'BAKE RECIPES',
-    subtitle: 'Your subtitle here'
+    subtitle: 'Your subtitle here',
+    format: 'png'
   })
 });
 
 const blob = await response.blob();
-// Download or use the image blob`}</code>
+const url = URL.createObjectURL(blob);
+// Use url for download or display`}</code>
               </pre>
             </AccordionContent>
           </AccordionItem>
